@@ -7,7 +7,7 @@ fn main() {
         .split("\n\n")
         .map(|inventory_str| {
             inventory_str
-                .split("\n")
+                .lines()
                 .map(|calories_str| calories_str.parse::<Int>().unwrap())
                 .collect()
         })
@@ -31,7 +31,7 @@ fn part2(inventories: &Vec<Vec<Int>>) -> Int {
         .map(|inventory| inventory.iter().sum())
         .collect();
 
-    inventory_sums.sort_by_key(|&inventory_sum| Reverse(inventory_sum));
+    inventory_sums.sort_unstable_by_key(|&inventory_sum| Reverse(inventory_sum));
 
     inventory_sums.iter().take(3).sum()
 }
