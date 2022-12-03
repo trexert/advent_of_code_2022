@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_priority() {
-        assert_eq!(priority("d"), 4);
-        assert_eq!(priority("Z"), 52);
+        assert_eq!(priority('d'), 4);
+        assert_eq!(priority('Z'), 52);
     }
 }
