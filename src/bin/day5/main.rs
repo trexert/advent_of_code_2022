@@ -16,6 +16,7 @@ fn main() {
 fn parse_stacks(stacks_str: &str) -> Vec<Vec<char>> {
     let mut stacks: Vec<Vec<char>> = vec![Vec::with_capacity(8); 9];
 
+    // Get useful info from the rows
     let rows = stacks_str.lines().map(|line| {
         line.chars()
             .enumerate()
@@ -24,7 +25,8 @@ fn parse_stacks(stacks_str: &str) -> Vec<Vec<char>> {
             .collect::<Vec<_>>()
     });
 
-    for row in rows {
+    // Stick that useful info into the stacks
+    for row in rows.rev() {
         for (i, maybe_c) in row.into_iter().enumerate() {
             if let Some(c) = maybe_c {
                 stacks[i].push(c);
@@ -32,15 +34,14 @@ fn parse_stacks(stacks_str: &str) -> Vec<Vec<char>> {
         }
     }
 
-    for stack in &mut stacks {
-        stack.reverse();
-    }
-
     stacks
 }
 
 fn part1(stacks: &Vec<Vec<char>>, instructions: &Vec<Instruction>) -> String {
+    // Don't modify the input
     let mut stacks = stacks.clone();
+
+    // Follow the instructions
     for instruction in instructions {
         for _ in 0..instruction.count {
             let moved_crate = stacks[instruction.from].pop().unwrap();
@@ -48,6 +49,7 @@ fn part1(stacks: &Vec<Vec<char>>, instructions: &Vec<Instruction>) -> String {
         }
     }
 
+    // Assemble string
     stacks
         .into_iter()
         .map(|mut stack| stack.pop().unwrap())
@@ -55,13 +57,17 @@ fn part1(stacks: &Vec<Vec<char>>, instructions: &Vec<Instruction>) -> String {
 }
 
 fn part2(stacks: &Vec<Vec<char>>, instructions: &Vec<Instruction>) -> String {
+    // Don't modify the input
     let mut stacks = stacks.clone();
+
+    // Follow the instrutions
     for instruction in instructions {
         let split_point = stacks[instruction.from].len() - instruction.count;
         let mut moved_crates = stacks[instruction.from].split_off(split_point);
         stacks[instruction.to].append(&mut moved_crates);
     }
 
+    // Assemble string
     stacks
         .into_iter()
         .map(|mut stack| stack.pop().unwrap())
@@ -78,6 +84,7 @@ struct Instruction {
 impl Instruction {
     fn from_str(instruction_str: &str) -> Self {
         let mut instruction_iter = instruction_str.split_whitespace();
+        // Fetch useful info from instruction line (skipping over the words)
         instruction_iter.next();
         let item = instruction_iter.next().unwrap().parse().unwrap();
         instruction_iter.next();
