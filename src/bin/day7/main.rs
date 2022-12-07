@@ -1,3 +1,4 @@
+use lib::PositionBinary;
 use std::collections::HashMap;
 
 fn main() {
@@ -26,8 +27,8 @@ fn part2(directory_sizes: &HashMap<String, u64>) -> u64 {
     sorted_sizes.sort_unstable();
 
     sorted_sizes[sorted_sizes
-        .iter()
-        .position(|size| *size >= min_size)
+        .as_slice()
+        .position_binary(|size| *size >= min_size)
         .unwrap()]
 }
 
