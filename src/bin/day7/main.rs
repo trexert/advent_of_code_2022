@@ -1,3 +1,7 @@
+#![feature(test)]
+
+extern crate test;
+
 use lib::PositionBinary;
 use std::collections::HashMap;
 
@@ -69,5 +73,53 @@ impl DirWalker {
             let fq_dir_name = dir_to_update.join("/");
             *self.directory_sizes.entry(fq_dir_name).or_default() += file_size;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use test::bench::black_box;
+    use test::Bencher;
+
+    #[bench]
+    fn linear(b: &mut Bencher) {
+        let shell_output = include_str!("input.txt");
+
+        let mut dir_walker = DirWalker::default();
+        let directory_sizes = dir_walker.size_directories(shell_output);
+
+        let min_size = directory_sizes["/"] - 40_000_000;
+
+        let mut sorted_sizes: Vec<_> = directory_sizes
+            .iter()
+            .map(|(_, dir_size)| *dir_size)
+            .collect();
+        sorted_sizes.sort_unstable();
+
+        let sorted_slice = sorted_sizes.as_slice();
+
+        b.iter(|| black_box(sorted_slice.into_iter().position(|size| *size >= min_size)))
+    }
+
+    #[bench]
+    fn binary(b: &mut Bencher) {
+        let shell_output = include_str!("input.txt");
+
+        let mut dir_walker = DirWalker::default();
+        let directory_sizes = dir_walker.size_directories(shell_output);
+
+        let min_size = directory_sizes["/"] - 40_000_000;
+
+        let mut sorted_sizes: Vec<_> = directory_sizes
+            .iter()
+            .map(|(_, dir_size)| *dir_size)
+            .collect();
+        sorted_sizes.sort_unstable();
+
+        let sorted_slice = sorted_sizes.as_slice();
+
+        b.iter(|| black_box(sorted_slice.position_binary(|size| *size >= min_size)))
     }
 }
