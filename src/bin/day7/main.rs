@@ -98,9 +98,7 @@ mod tests {
             .collect();
         sorted_sizes.sort_unstable();
 
-        let sorted_slice = sorted_sizes.as_slice();
-
-        b.iter(|| black_box(sorted_slice.into_iter().position(|size| *size >= min_size)))
+        b.iter(|| black_box(sorted_sizes.iter().position(|size| *size >= min_size)))
     }
 
     #[bench]
