@@ -1,4 +1,6 @@
-use std::{cmp::Ordering, collections::HashSet};
+#![feature(iter_intersperse)]
+
+use std::{cmp::Ordering, collections::HashSet, thread, time::Duration};
 
 fn main() {
     let directions: Vec<(char, u8)> = include_str!("input.txt")
@@ -72,6 +74,7 @@ fn part2(directions: &[(char, u8)]) -> usize {
                 rope[knot + 1] = move_tail(rope[knot], rope[knot + 1]);
             }
             t_visited.insert(rope[9]);
+            visualise_step(&rope, &t_visited);
         }
     }
 
@@ -106,3 +109,26 @@ fn move_tail(h: (i32, i32), t: (i32, i32)) -> (i32, i32) {
 
     new_t
 }
+
+fn visualise_step(rope: &[(i32, i32)], past_tails: &HashSet<(i32, i32)>) {
+    let mut grid = [['.'; GRID_SIZE]; GRID_SIZE];
+    for (x, y) in past_tails {
+        grid[(-*y + OFFSET) as usize][(*x + OFFSET) as usize] = '#';
+    }
+    for (i, (x, y)) in rope.iter().enumerate().rev() {
+        grid[(-*y + OFFSET) as usize][(*x + OFFSET) as usize] =
+            i.to_string().chars().next().unwrap();
+    }
+    println!(
+        "{}",
+        grid.into_iter()
+            .map(|row| row.into_iter().collect::<String>())
+            .intersperse("\n".to_string())
+            .collect::<String>()
+    );
+
+    thread::sleep(Duration::from_millis(100));
+}
+
+const GRID_SIZE: usize = 71;
+const OFFSET: i32 = (GRID_SIZE / 2 + 1) as i32;
