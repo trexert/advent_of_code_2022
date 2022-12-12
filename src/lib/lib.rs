@@ -1,4 +1,5 @@
 pub mod dijkstra;
+pub mod floydwarshall;
 
 pub struct LetterSet {
     backing_store: u64,

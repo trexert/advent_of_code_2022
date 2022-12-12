@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use lib::dijkstra;
+use lib::floydwarshall;
 
 fn main() {
     let mut start = None;
@@ -26,7 +27,9 @@ fn main() {
         })
         .collect();
 
-    println!("Part1: {}", part1(&grid, start.unwrap(), end.unwrap()));
+    let map = build_map(&grid);
+
+    println!("Part1: {}", part1(&map, start.unwrap(), end.unwrap()));
 
     let all_starts: Vec<(u8, u8)> = grid
         .iter()
@@ -45,21 +48,35 @@ fn main() {
         })
         .collect();
 
-    println!("Part2: {}", part2(&grid, &all_starts, end.unwrap()));
+    println!("Part2: {}", part2(&map, &all_starts, end.unwrap()));
+    println!(
+        "Part2 floyd-warshall: {}",
+        part2_fw(&map, &all_starts, end.unwrap())
+    );
 }
 
-fn part1(grid: &Vec<Vec<u8>>, start: (u8, u8), end: (u8, u8)) -> u64 {
-    let (_, result) = dijkstra::solve_uniform_edges(&build_map(grid), start, end).unwrap();
+fn part1(map: &HashMap<(u8, u8), Vec<(u8, u8)>>, start: (u8, u8), end: (u8, u8)) -> u64 {
+    let (_, result) = dijkstra::solve_uniform_edges(map, start, end).unwrap();
     result
 }
 
-fn part2(grid: &Vec<Vec<u8>>, starts: &Vec<(u8, u8)>, end: (u8, u8)) -> u64 {
-    let map = build_map(grid);
+fn part2(map: &HashMap<(u8, u8), Vec<(u8, u8)>>, starts: &Vec<(u8, u8)>, end: (u8, u8)) -> u64 {
     starts
-        .iter()
+        .into_iter()
         .filter_map(|start| {
-            dijkstra::solve_uniform_edges(&map, *start, end).and_then(|result| Some(result.1))
+            dijkstra::solve_uniform_edges(map, *start, end).and_then(|result| Some(result.1))
         })
+        .min()
+        .unwrap()
+}
+
+fn part2_fw(map: &HashMap<(u8, u8), Vec<(u8, u8)>>, starts: &Vec<(u8, u8)>, end: (u8, u8)) -> u64 {
+    let routes: Vec<_> = starts.into_iter().map(|start| (*start, end)).collect();
+
+    let all_distances = floydwarshall::solve_uniform_edges(map, &routes);
+    all_distances
+        .into_iter()
+        .filter_map(|distance| distance)
         .min()
         .unwrap()
 }
