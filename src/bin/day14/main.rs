@@ -2,25 +2,48 @@
 use std::{collections::HashMap, fmt::Debug, thread, time::Duration};
 
 use itertools::Itertools;
+use lib::common_startup;
+use log::{debug, info, trace, Level::*};
 use CaveCell::{Air, Rock, Sand, Source};
 
 fn main() {
-    let cave = dbg!(Cave::from_input(include_str!("input.txt")));
+    common_startup::startup();
+    let cave = Cave::from_input(include_str!("input.txt"));
 
-    println!("Part1: {}", part1(&cave));
+    debug!("{:?}", cave);
+
+    info!("Part1: {}", part1(&cave));
+    info!("Part1: {}", part2(&cave));
 }
 
 fn part1(cave: &Cave) -> usize {
     let mut cave = cave.clone();
+    let stop_condition = move |_x, y| y > cave.maxy;
     let mut grains = 0;
-    while cave.drop_sand() {
-        if grains % 5 == 0 {
-            thread::sleep(Duration::from_millis(100));
-            println!("{:?}", cave);
-        }
+    while cave.drop_sand(stop_condition) {
         grains += 1;
+        if log::log_enabled!(Trace) && grains % 10 == 0 {
+            thread::sleep(Duration::from_millis(100));
+            trace!("{:?}", cave);
+        }
     }
+    debug!("{:?}", cave);
     grains
+}
+
+fn part2(cave: &Cave) -> usize {
+    let mut cave = cave.clone();
+    let stop_condition = |_x, y| y == 0;
+    let mut grains = 0;
+    while cave.drop_sand(stop_condition) {
+        grains += 1;
+        if log::log_enabled!(Trace) && grains % 50 == 0 {
+            thread::sleep(Duration::from_millis(100));
+            trace!("{:?}", cave);
+        }
+    }
+    debug!("{:?}", cave);
+    grains + 1
 }
 
 #[derive(Clone)]
@@ -29,6 +52,7 @@ struct Cave {
     minx: u16,
     maxx: u16,
     maxy: u16,
+    floory: u16,
 }
 
 impl Cave {
@@ -75,23 +99,34 @@ impl Cave {
             minx,
             maxx,
             maxy,
+            floory: maxy + 2,
         }
     }
 
     fn get_cell(&self, x: u16, y: u16) -> CaveCell {
-        *self.layout.get(&(x, y)).unwrap_or(&Air)
+        *self
+            .layout
+            .get(&(x, y))
+            .unwrap_or_else(|| if y >= self.floory { &Rock } else { &Air })
     }
 
-    // Returns whether the sand grain was stopped by the cave
-    fn drop_sand(&mut self) -> bool {
-        let mut current_pos = SOURCE;
-        while let Some((nx, ny)) = self.next_space(current_pos) {
-            if nx < self.minx || nx > self.maxx || ny > self.maxy {
-                return false;
-            }
-            current_pos = (nx, ny);
+    // Returns whether we can drop another grain
+    fn drop_sand<P>(&mut self, stop_condition: P) -> bool
+    where
+        P: Fn(u16, u16) -> bool,
+    {
+        let (mut cx, mut cy) = SOURCE;
+        while let Some((nx, ny)) = self.next_space((cx, cy)) {
+            (cx, cy) = (nx, ny);
         }
-        self.layout.insert(current_pos, Sand);
+
+        if stop_condition(cx, cy) {
+            return false;
+        }
+
+        self.layout.insert((cx, cy), Sand);
+        self.minx = cx.min(self.minx);
+        self.maxx = cx.max(self.maxx);
         true
     }
 
@@ -111,7 +146,7 @@ impl Cave {
 impl Debug for Cave {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut output =
-            vec![vec![Air; (self.maxx - self.minx + 1) as usize]; (self.maxy + 1) as usize];
+            vec![vec![Air; (self.maxx - self.minx + 1) as usize]; (self.floory) as usize];
 
         for (&(x, y), &cell) in &self.layout {
             output[y as usize][(x - self.minx) as usize] = cell;
