@@ -7,8 +7,13 @@ use log::{debug, info, trace, Level::*};
 use CaveCell::{Air, Rock, Sand, Source};
 
 fn main() {
-    common_startup::startup();
-    let cave = Cave::from_input(include_str!("input.txt"));
+    let cli = common_startup::startup();
+    let input = if cli.sample {
+        include_str!("sample_input.txt")
+    } else {
+        include_str!("input.txt")
+    };
+    let cave = Cave::from_input(input);
 
     debug!("{:?}", cave);
 
