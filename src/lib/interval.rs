@@ -1,8 +1,7 @@
 use itertools::Itertools;
-use log::debug;
 use num::PrimInt;
 
-use std::{fmt::Debug, thread::current};
+use std::fmt::Debug;
 
 macro_rules! i {
     ($min:expr, $max:expr) => {
