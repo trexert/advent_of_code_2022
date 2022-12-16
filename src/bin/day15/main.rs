@@ -2,16 +2,17 @@ use std::{collections::HashSet, str::FromStr};
 
 use itertools::Itertools;
 use lib::common_startup::startup;
-use log::{debug, info};
+use lib::interval::IntervalSet;
+use log::{debug, info, trace};
 use once_cell::sync::Lazy;
 use regex::Regex;
 
 fn main() {
     let cli = startup();
-    let (row, input) = if cli.sample {
-        (10, include_str!("sample_input.txt"))
+    let (input, row, max_index) = if cli.sample {
+        (include_str!("sample_input.txt"), 10, 20)
     } else {
-        (2_000_000, include_str!("input.txt"))
+        (include_str!("input.txt"), 2_000_000, 4_000_000)
     };
 
     let sensors: Vec<Sensor> = input
@@ -20,6 +21,7 @@ fn main() {
         .collect();
 
     info!("Part1: {}", part1(&sensors, row));
+    info!("Part2: {}", part2(&sensors, max_index));
 }
 
 fn part1(sensors: &[Sensor], row: i32) -> usize {
@@ -44,12 +46,30 @@ fn part1(sensors: &[Sensor], row: i32) -> usize {
         }
     }
 
-    debug!("blocked_spaces: {:?}", {
-        let mut bsv = blocked_spaces.iter().collect_vec();
-        bsv.sort();
-        bsv
-    });
     blocked_spaces.len()
+}
+
+fn part2(sensors: &[Sensor], max_index: i32) -> i64 {
+    let row_space = IntervalSet::from_interval(0, max_index);
+    for row in 0..=max_index {
+        if row % 1000 == 0 {
+            debug!("{}", row);
+        }
+        let blocked_space = sensors
+            .iter()
+            .fold(IntervalSet::new(), |acc: IntervalSet<i32>, sensor| {
+                acc.union(&sensor.blocked_interval(row))
+            })
+            .intersection(&row_space);
+        trace!("{:?}", blocked_space);
+        if blocked_space != row_space {
+            let available_space = row_space.difference(&blocked_space);
+            debug!("{:?}, {:?}", blocked_space, available_space);
+            let x = available_space.get_intervals()[0].0;
+            return x as i64 * 4_000_000 + row as i64;
+        }
+    }
+    panic!()
 }
 
 struct Sensor {
@@ -82,6 +102,19 @@ impl Sensor {
             nearest_beacon: (bx, by),
             beacon_dist: dist((sx, sy), (bx, by)),
         }
+    }
+
+    fn blocked_interval(&self, row: i32) -> IntervalSet<i32> {
+        let dist_to_row = row.abs_diff(self.pos.1);
+        let remaining_dist = if self.beacon_dist >= dist_to_row {
+            self.beacon_dist + 1 - dist_to_row
+        } else {
+            0
+        } as i32;
+        IntervalSet::from_interval(
+            self.pos.0 - remaining_dist + 1,
+            self.pos.0 + remaining_dist - 1,
+        )
     }
 }
 

@@ -1,6 +1,7 @@
 pub mod common_startup;
 pub mod dijkstra;
 pub mod floydwarshall;
+pub mod interval;
 pub mod logger;
 
 pub struct LetterSet {
