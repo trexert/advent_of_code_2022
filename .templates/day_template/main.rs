@@ -9,8 +9,8 @@ fn main() {
         include_str!("input.txt")
     };
 
-    // info!("Part1: {}", part1(&connections, &id_to_valve));
-    // info!("Part2: {}", part2(&connections, &id_to_valve));
+    // info!("Part1: {}", part1());
+    // info!("Part2: {}", part2());
 }
 
 fn part1() {}
