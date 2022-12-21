@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use lib::common_startup::startup;
 use lib::op_wrapper::Op;
-use log::info;
+use log::{debug, info, trace, Level};
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -23,12 +23,43 @@ fn main() {
         .collect();
 
     info!("Part1: {}", part1(&monkeys));
-    // info!("Part2: {}", part2());
+    info!("Part2: {:?}", part2(&monkeys));
 }
 
 fn part1(monkeys: &HashMap<&str, MonkeyNum>) -> f64 {
     let mut monkeys = monkeys.clone();
-    let mut to_calc = vec!["root"];
+    calculate_monkey("root", &mut monkeys, None)
+}
+
+fn part2(monkeys: &HashMap<&str, MonkeyNum>) -> f64 {
+    let root = monkeys["root"].op();
+    let mut monkeys0 = monkeys.clone();
+    let left0 = calculate_monkey(root.0, &mut monkeys0, Some(0.0));
+    let right0 = calculate_monkey(root.1, &mut monkeys0, Some(0.0));
+    let mut monkeys1 = monkeys.clone();
+    let left1 = calculate_monkey(root.0, &mut monkeys1, Some(1_000_000_000_000.0));
+    let right1 = calculate_monkey(root.1, &mut monkeys1, Some(1_000_000_000_000.0));
+    let diff0 = right0 - left0;
+    let diff1 = right1 - left1;
+    let humn = diff0 / ((diff0 - diff1) / 1_000_000_000_000.0);
+    if log::log_enabled!(Level::Debug) {
+        let mut monkeys2 = monkeys.clone();
+        let left2 = calculate_monkey(root.0, &mut monkeys2, Some(humn));
+        let right2 = calculate_monkey(root.1, &mut monkeys2, Some(humn));
+        debug!("{}, {}", left2, right2);
+    }
+    humn
+}
+
+fn calculate_monkey(
+    monkey_id: &str,
+    monkeys: &mut HashMap<&str, MonkeyNum>,
+    humn: Option<f64>,
+) -> f64 {
+    let mut to_calc = vec![monkey_id];
+    if let Some(val) = humn {
+        monkeys.get_mut("humn").unwrap().kind = MonkeyNumKind::Val(val);
+    }
     while let Some(current_id) = to_calc.pop() {
         match &monkeys[current_id].kind {
             MonkeyNumKind::Val(_) => (),
@@ -42,13 +73,7 @@ fn part1(monkeys: &HashMap<&str, MonkeyNum>) -> f64 {
             },
         }
     }
-    monkeys["root"].val()
-}
-
-fn part2(monkeys: &HashMap<&str, MonkeyNum>) -> (f64, f64) {
-    let root = monkeys["root"].op();
-    let left = root.0;
-    let right = root.1;
+    monkeys[monkey_id].val()
 }
 
 #[derive(Clone, Debug)]
@@ -91,8 +116,8 @@ impl MonkeyNum {
         }
     }
 
-    fn op(&self) -> (&str, &str, Op) {
-        if let MonkeyNumKind::Op(left, right, op) = self.kind {
+    fn op(&self) -> (&'static str, &'static str, Op) {
+        if let MonkeyNumKind::Op(left, right, op) = self.kind.clone() {
             (left, right, op)
         } else {
             panic!("Tried to get op from non-op {:?}", self)
@@ -101,5 +126,5 @@ impl MonkeyNum {
 }
 
 static MONKEY_REGEX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"(?P<id>[a-z]{4}): (?:(?P<left>[a-z]{4}) (?P<op>[\+\-\*/]) (?P<right>[a-z]{4})|(?P<num>\d*))").unwrap()
+    Regex::new(r"(?P<id>[a-z]{4}): (?:(?P<left>[a-z]{4}) (?P<op>[\+\-\*/]) (?P<right>[a-z]{4})|(?P<num>[-\d\.]*))").unwrap()
 });
