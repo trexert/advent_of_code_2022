@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use lib::common_startup::startup;
 use lib::op_wrapper::Op;
-use log::{debug, info, trace, Level};
+use log::{debug, info, Level};
 use once_cell::sync::Lazy;
 use regex::Regex;
 
