@@ -33,14 +33,17 @@ fn check_for_marker_naive(packet: &[char]) -> bool {
     (0..packet.len()).all(|i| ((i + 1)..packet.len()).all(|j| packet[i] != packet[j]))
 }
 
+#[allow(dead_code)]
 fn check_for_marker_hashset(packet: &[char]) -> bool {
     packet.iter().collect::<HashSet<_>>().len() == packet.len()
 }
 
+#[allow(dead_code)]
 fn check_for_marker_letterset(packet: &[char]) -> bool {
     LetterSet::from(packet).len() == packet.len()
 }
 
+#[allow(dead_code)]
 fn check_for_marker_btree(packet: &[char]) -> bool {
     packet.iter().collect::<BTreeSet<_>>().len() == packet.len()
 }

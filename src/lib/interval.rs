@@ -9,6 +9,7 @@ macro_rules! i {
     };
 }
 
+#[allow(unused_macros)]
 macro_rules! is {
     ($min:expr, $max:expr) => {
         IntervalSet {
