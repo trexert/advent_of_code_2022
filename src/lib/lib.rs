@@ -3,6 +3,7 @@ pub mod dijkstra;
 pub mod floydwarshall;
 pub mod interval;
 pub mod logger;
+pub mod op_wrapper;
 
 pub struct LetterSet {
     backing_store: u64,
