@@ -1,6 +1,5 @@
 use std::{collections::HashSet, str::FromStr};
 
-use itertools::Itertools;
 use lib::common_startup::startup;
 use lib::interval::IntervalSet;
 use log::{debug, info, trace};
